@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <_name>Target</_name>
+  <id>org.inkscape.render.target</id>
+<param name="tab" type="notebook">
+<page name="Options" _gui-text="Options">
+  <param name="distance" type="int" min="1" max="1000" _gui-text="Distance to target:">100</param>
+</page>
+<page name="Help" _gui-text="Help">
+<_param name="instructions" type="description" xml:space="preserve">
+1. scan a target
+2. import scan into inkscape
+3. create circles centered at each shot for 3 or more shots
+4. select desired shots
+5. enter distance to target
+6. click apply to get average center, average precision circle, and moa at your distance
+</_param>
+</page>
+</_param>
+  <effect needs-live-preview="false">
+    <object-type>path</object-type>
+    <effects-menu>
+      <submenu _name="Render"/>
+    </effects-menu>
+  </effect>
+  <script>
+    <command reldir="extensions" interpreter="python">target.py</command>
+  </script>
+</inkscape-extension>
