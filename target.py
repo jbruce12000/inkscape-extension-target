@@ -158,13 +158,13 @@ class Circles:
         total = 0
         for circle in self.circles:
             total = total + (circle.x - minx.x)
-        x_avg = total/(len(self.circles)-1) + minx.x
+        x_avg = total/len(self.circles) + minx.x
 
         miny = self.min_y()
         total = 0
         for circle in self.circles:
             total = total + (circle.y - miny.y)
-        y_avg = total/(len(self.circles)-1) + miny.y
+        y_avg = total/len(self.circles) + miny.y
         return (x_avg,y_avg)
 
     def average_radius(self):
