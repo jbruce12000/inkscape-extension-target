@@ -14,3 +14,5 @@ Quick Start
 9. click Apply and get something like this...
 
 ![alt text](target.png "Sample target")
+
+keywords... shooting, target, analysis
