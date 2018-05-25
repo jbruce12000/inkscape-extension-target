@@ -14,5 +14,6 @@ Quick Start
 9. click Apply and get something like this...
 
 ![alt text](target.png "Sample target")
+![alt text](combined.png "Many targets combined")
 
 keywords... shooting, target, analysis
