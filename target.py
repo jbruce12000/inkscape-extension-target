@@ -30,9 +30,19 @@ class Target(inkex.Effect):
         circles.draw_circle(apc)
         circles.draw_plus((apc[0],apc[1]))
         apc_in = circles.average_precision_circle_inches(apc)
-        moa = circles.moa(apc_in,distance=self.options.distance)
+        moa = circles.moa(apc_in[2]*2,distance=self.options.distance)
+        hv_avg_precision = circles.average_horizontal_vertical_precision(distance=self.options.distance)
+     
+        output = "%d shots, %d yards to target\n" % \
+            (len(circles.circles),self.options.distance) + \
+            "average precision = %.2f inches, %.2f moa\n" % \
+            (apc_in[2]*2,moa) + \
+            "horiz precision   = %.2f inches, %.2f moa\n" % \
+            (hv_avg_precision[0],hv_avg_precision[1]) + \
+            "vert precision    = %.2f inches, %.2f moa" % \
+            (hv_avg_precision[2],hv_avg_precision[3])
 
-        circles.draw_text('%s shots\naverage precision = %.2f inches\nmoa at %d yds = %.2f' % (len(circles.circles),apc_in[2]*2,self.options.distance,moa),(apc[0]+2,apc[1]+10))
+        circles.draw_text(output,(apc[0]-80,apc[1]+50))
 
 
 class Circles:
@@ -41,6 +51,7 @@ class Circles:
         self.circles = []
         self.get_circles_from_effect()
         self.name = 'target-average-precision'
+        self.center = self.average_center()        
 
     def parent(self):
         '''this grabs the parent of one of the circles...so I can use
@@ -108,7 +119,6 @@ class Circles:
                   inkex.addNS("role","sodipodi"):"line",})
             y += font_size
             span.text = str(s)
-             
 
     def get_circles_from_effect(self):
         '''this gets all circles from the effect and
@@ -151,6 +161,25 @@ class Circles:
                 miny_circle = circle
         return miny_circle
 
+    def average_horizontal_vertical_precision(self,distance=100):
+        '''get separate average components for horizontal
+           and vertical. Sometimes it's helpful to know.  Maybe wind
+           causes big horizontal spread.  Maybe powder differences
+           cause vertical spread.
+           returns a tuple of (horizontal inches, horizontal moa,vertical inches,vertical moa)
+        '''
+        totx = 0
+        toty = 0
+        for circle in self.circles:
+            totx = totx + float(abs(self.center[0]-circle.x))
+            toty = toty + float(abs(self.center[1]-circle.y))
+        avgx = (totx / len(self.circles))*2
+        avgy = (toty / len(self.circles))*2
+        avgx = self.effect.uutounit(avgx,'in')
+        avgy = self.effect.uutounit(avgy,'in')
+        return (avgx,self.moa(avgx,distance),avgy,self.moa(avgy,distance))
+
+
     def average_center(self):
         '''get the average x and average y from minx and min y of
            each circle.  returns an (x,y) tuple'''
@@ -170,11 +199,10 @@ class Circles:
     def average_radius(self):
         '''calculate the average radius (precision) of the group
            of circles. returns a float.'''
-        center = self.average_center()
         total = 0
         for circle in self.circles:
-            x = abs(center[0]-circle.x)
-            y = abs(center[1]-circle.y)
+            x = abs(self.center[0]-circle.x)
+            y = abs(self.center[1]-circle.y)
             radius = math.sqrt(x*x + y*y)
             total = total + radius
         return total / len(self.circles)
@@ -182,9 +210,8 @@ class Circles:
     def average_precision_circle(self):
         '''returns a tuple of (x,y,radius) that defines the
            average precision of all circles'''
-        avgxy = self.average_center()
         avgr = self.average_radius()
-        return (avgxy[0],avgxy[1],avgr)
+        return (self.center[0],self.center[1],avgr)
 
     def average_precision_circle_inches(self,sometuple):
         '''input is a tuple of (x,y,r), output is the same in inches'''
@@ -196,10 +223,9 @@ class Circles:
         r = self.effect.uutounit(r,'in')
         return (x,y,r)
 
-    def moa(self,sometuple,distance=100):
-        '''gives the moa for a given tuple at a specific distance in yards'''
-        r = sometuple[2]
-        moa = float(r)*2/(1.047*(float(distance)/100))
+    def moa(self,span,distance=100):
+        '''gives the moa for a given span at a specific distance in yards'''
+        moa = float(span)/(1.047*(float(distance)/100))
         return moa
 
     def __str__(self):
