@@ -32,15 +32,18 @@ class Target(inkex.Effect):
         apc_in = circles.average_precision_circle_inches(apc)
         moa = circles.moa(apc_in[2]*2,distance=self.options.distance)
         hv_avg_precision = circles.average_horizontal_vertical_precision(distance=self.options.distance)
+        es = circles.extreme_spread(distance=self.options.distance)
      
         output = "%d shots, %d yards to target\n" % \
             (len(circles.circles),self.options.distance) + \
-            "average precision = %.2f inches, %.2f moa\n" % \
+            "average precision = %.2f in, %.2f moa\n" % \
             (apc_in[2]*2,moa) + \
-            "horiz precision   = %.2f inches, %.2f moa\n" % \
+            "horiz precision   = %.2f in, %.2f moa\n" % \
             (hv_avg_precision[0],hv_avg_precision[1]) + \
-            "vert precision    = %.2f inches, %.2f moa" % \
-            (hv_avg_precision[2],hv_avg_precision[3])
+            "vert precision    = %.2f in, %.2f moa\n" % \
+            (hv_avg_precision[2],hv_avg_precision[3]) + \
+            "extreme spread    = %.2f in, %.2f moa" % \
+            (es[0],es[1])
 
         circles.draw_text(output,(apc[0]-80,apc[1]+50))
 
@@ -160,6 +163,21 @@ class Circles:
                 miny = circle.y
                 miny_circle = circle
         return miny_circle
+
+    def extreme_spread(self,distance=100):
+       '''the furthest distance between two holes in a target
+          center to center. returns tuple of (inches,moa)'''
+       max = 0
+       for circle1 in self.circles:
+           for circle2 in self.circles:
+               x = abs(circle1.x-circle2.x)
+               y = abs(circle1.y-circle2.y)
+               d = math.sqrt(x*x + y*y)
+               if d > max:
+                   max = d
+       max = self.effect.uutounit(max,'in')
+       return (max,self.moa(max,distance))
+
 
     def average_horizontal_vertical_precision(self,distance=100):
         '''get separate average components for horizontal
