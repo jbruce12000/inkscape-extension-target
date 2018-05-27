@@ -19,6 +19,4 @@ Here is a sample combining many shots from 15 targets...
 
 ![alt text](combined.png "Many targets combined")
 
-See [Circular Error Probable](https://en.wikipedia.org/wiki/Circular_error_probable) or CEP for reference
-
-keywords... shooting, target, analysis, circular error probable, cep
+keywords... shooting, target, analysis
