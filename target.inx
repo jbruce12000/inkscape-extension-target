@@ -16,14 +16,17 @@
 6. click apply to get average center, average precision circle, and moa at your distance
 </_param>
 </page>
-</_param>
+</param>
+
   <effect needs-live-preview="false">
     <object-type>path</object-type>
     <effects-menu>
       <submenu _name="Render"/>
     </effects-menu>
   </effect>
+
   <script>
     <command reldir="extensions" interpreter="python">target.py</command>
   </script>
+
 </inkscape-extension>
