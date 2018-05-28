@@ -36,11 +36,11 @@ class Target(inkex.Effect):
      
         output = "%d shots, %d yards to target\n" % \
             (len(circles.circles),self.options.distance) + \
-            "average precision = %.2f in, %.2f moa\n" % \
+            "mean precision = %.2f in, %.2f moa\n" % \
             (apc_in[2]*2,moa) + \
-            "horiz precision   = %.2f in, %.2f moa\n" % \
+            "mean horiz precision   = %.2f in, %.2f moa\n" % \
             (hv_avg_precision[0],hv_avg_precision[1]) + \
-            "vert precision    = %.2f in, %.2f moa\n" % \
+            "mean vert precision    = %.2f in, %.2f moa\n" % \
             (hv_avg_precision[2],hv_avg_precision[3]) + \
             "extreme spread    = %.2f in, %.2f moa" % \
             (es[0],es[1])
