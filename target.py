@@ -25,13 +25,13 @@ class Target(inkex.Effect):
         if len(circles.circles) <= 2:
             inkex.errormsg('select more than 2 circles')
             return None
-        #print circles
         apc = circles.average_precision_circle()
         circles.draw_circle(apc)
         circles.draw_plus((apc[0],apc[1]))
         apc_in = circles.average_precision_circle_inches(apc)
         moa = circles.moa(apc_in[2]*2,distance=self.options.distance)
-        hv_avg_precision = circles.average_horizontal_vertical_precision(distance=self.options.distance)
+        hv_avg_precision = circles.average_horizontal_vertical_precision( \
+            distance=self.options.distance)
         es = circles.extreme_spread(distance=self.options.distance)
      
         output = "%d shots, %d yards to target\n" % \
@@ -49,6 +49,8 @@ class Target(inkex.Effect):
 
 
 class Circles:
+    '''circles grabs all selected circles, finds various stats
+       and writes statistical info to the svg document'''
     def __init__(self,effect):
         self.effect = effect
         self.circles = []
@@ -199,7 +201,7 @@ class Circles:
 
 
     def average_center(self):
-        '''get the average x and average y from minx and min y of
+        '''calculate the average x and average y from x and y of
            each circle.  returns an (x,y) tuple'''
         minx = self.min_x()
         total = 0
