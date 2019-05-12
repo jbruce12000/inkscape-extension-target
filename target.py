@@ -45,7 +45,8 @@ class Target(inkex.Effect):
             "extreme spread    = %.2f in, %.2f moa" % \
             (es[0],es[1])
 
-        circles.draw_text(output,(apc[0]-80,apc[1]+50))
+        circles.draw_text(output,(apc[0]-20,apc[1]+20))
+        #circles.draw_text(output,(apc[0]-80,apc[1]+50))
 
 
 class Circles:
@@ -70,9 +71,10 @@ class Circles:
         x = sometuple[0]
         y = sometuple[1]
         r = sometuple[2]
+        sw = self.effect.unittouu('1 px')
         circ_style = { 'stroke':str('#ff0000'),
                        'fill': 'none',
-                       'stroke-width':str('1')  }
+                       'stroke-width':str(sw)  }
         circ_attribs = {'style':simplestyle.formatStyle(circ_style),
             inkex.addNS('label','inkscape'):self.name,
             'cx':str(x), 'cy':str(y), 'r':str(r)}
@@ -81,15 +83,19 @@ class Circles:
 
     def draw_plus(self,point,size=20):
         '''draw a red target plus at the given point tuple (x,y)'''
-        self.draw_line((point[0]-size/2,point[1]),(point[0]+size/2,point[1]))
-        self.draw_line((point[0],point[1]-size/2),(point[0],point[1]+size/2))
+        fs = self.effect.unittouu(str(size)+' px')
+        self.draw_line((point[0]-fs/2,point[1]),(point[0]+fs/2,point[1]))
+        self.draw_line((point[0],point[1]-fs/2),(point[0],point[1]+fs/2))
 
     def draw_line(self,point1,point2):
         '''draw a 1px red line from point1 to point2
            on the same parent element as one of the circles
            input points are tuples of (x,y)'''
+
+        sw = self.effect.unittouu('1 px')
+
         line_style = { 'stroke':str('#ff0000'),
-                       'stroke-width':str('1')  }
+                       'stroke-width':str(sw)  }
         line_attribs = {'style':simplestyle.formatStyle(line_style),
             inkex.addNS('label','inkscape'):self.name, 'd':'M '+str(point1[0])+
             ','+str(point1[1])+' L '+str(point2[0])+','+str(point2[1])}
@@ -101,12 +107,17 @@ class Circles:
         x = point[0]
         y = point[1]
         font_size = 10
+
+        fs = self.effect.unittouu(str(font_size)+' px')
+        #px = self.effect.unittouu(str(x)+' px')
+        #py = self.effect.unittouu(str(y)+' px')
+
         text_style = { 'font-family':str('DejaVu Sans'),
                        'font-style':str('normal'),
                        'font-variant':str('normal'),
                        'font-weight':str('normal'),
                        'font-stretch':str('normal'),
-                       'font-size':str(font_size),
+                       'font-size':str(fs),
                        'fill':str('#ff0000'),
                        'fill-opacity':str('1'),
                        'stroke':str('none') }
