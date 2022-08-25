@@ -6,21 +6,17 @@
 # 
 
 import math, inkex, simplepath, sys, simplestyle
+from lxml import etree
 
-class Target(inkex.Effect):
-    def __init__(self):
-        inkex.Effect.__init__(self)
-        self.OptionParser.add_option("--distance",
-            action="store", type="int", 
-            dest="distance", default=100,
-            help="distance from target")
-
-        self.OptionParser.add_option("--tab",
-            action="store", type="string",
-            dest="tab",
-            help="The selected UI-tab when OK was pressed")
+class Target(inkex.EffectExtension):
+    def add_arguments(self, pars):
+        pars.add_argument("--distance",type=int,default=100,dest="distance",
+                          help="distance from target")
+        pars.add_argument("--tab",type=ascii,default=100,dest="tab",
+                          help="The selected UI-tab when OK was pressed")
 
     def effect(self):
+        self.group = self.svg.get_current_layer().add(inkex.Group.new('target'))
         circles = Circles(self)
         if len(circles.circles) <= 2:
             inkex.errormsg('select more than 2 circles')
@@ -45,7 +41,7 @@ class Target(inkex.Effect):
             "extreme spread    = %.2f in, %.2f moa" % \
             (es[0],es[1])
 
-        circles.draw_text(output,(apc[0]-20,apc[1]+20))
+        circles.draw_text(output,(apc[0]+0,apc[1]+70))
         #circles.draw_text(output,(apc[0]-80,apc[1]+50))
 
 
@@ -71,19 +67,18 @@ class Circles:
         x = sometuple[0]
         y = sometuple[1]
         r = sometuple[2]
-        sw = self.effect.unittouu('1 px')
+        sw = self.effect.svg.unittouu('1 px')
         circ_style = { 'stroke':str('#ff0000'),
                        'fill': 'none',
                        'stroke-width':str(sw)  }
-        circ_attribs = {'style':simplestyle.formatStyle(circ_style),
-            inkex.addNS('label','inkscape'):self.name,
-            'cx':str(x), 'cy':str(y), 'r':str(r)}
-        inkex.etree.SubElement(self.parent(), 
-            inkex.addNS('circle','svg'), circ_attribs )
+        circ_attribs = {'cx':str(x), 'cy':str(y), 'r':str(r)}
+        e = self.effect.group.add(inkex.Circle(**circ_attribs))
+        e.style = circ_style
+        e.label = 'circle'
 
     def draw_plus(self,point,size=20):
         '''draw a red target plus at the given point tuple (x,y)'''
-        fs = self.effect.unittouu(str(size)+' px')
+        fs = self.effect.svg.unittouu(str(size)+' px')
         self.draw_line((point[0]-fs/2,point[1]),(point[0]+fs/2,point[1]))
         self.draw_line((point[0],point[1]-fs/2),(point[0],point[1]+fs/2))
 
@@ -92,15 +87,19 @@ class Circles:
            on the same parent element as one of the circles
            input points are tuples of (x,y)'''
 
-        sw = self.effect.unittouu('1 px')
+        sw = self.effect.svg.unittouu('1 px')
 
         line_style = { 'stroke':str('#ff0000'),
                        'stroke-width':str(sw)  }
-        line_attribs = {'style':simplestyle.formatStyle(line_style),
-            inkex.addNS('label','inkscape'):self.name, 'd':'M '+str(point1[0])+
-            ','+str(point1[1])+' L '+str(point2[0])+','+str(point2[1])}
-        inkex.etree.SubElement(self.parent(), 
-            inkex.addNS('path','svg'), line_attribs )
+        #line_attribs = { 'M '+str(point1[0])+
+        #    ','+str(point1[1])+' L '+str(point2[0])+','+str(point2[1])}
+
+        line_attribs = { 'x1':str(point1[0]),'y1':str(point1[1]),
+                         'x2':str(point2[0]),'y2':str(point2[1]) }
+
+        e = self.effect.group.add(inkex.Line(**line_attribs)) 
+        e.style = line_style
+        e.label = 'line'
 
     def draw_text(self,text,point):
         '''draws red 10 pt text starting at the given point tuple(x,y)'''
@@ -108,9 +107,7 @@ class Circles:
         y = point[1]
         font_size = 10
 
-        fs = self.effect.unittouu(str(font_size)+' px')
-        #px = self.effect.unittouu(str(x)+' px')
-        #py = self.effect.unittouu(str(y)+' px')
+        fs = self.effect.svg.unittouu(str(font_size)+' px')
 
         text_style = { 'font-family':str('DejaVu Sans'),
                        'font-style':str('normal'),
@@ -121,27 +118,22 @@ class Circles:
                        'fill':str('#ff0000'),
                        'fill-opacity':str('1'),
                        'stroke':str('none') }
-        text_attribs = { 'style':simplestyle.formatStyle(text_style),
-                         'x':str(x),
-                         'y':str(y),
-                         inkex.addNS('label','inkscape'):self.name }
-        t = inkex.etree.SubElement(self.parent(), 
-            inkex.addNS('text','svg'), text_attribs )
+        text_attribs = { 'x':str(x), 'y':str(y) }
+        t = self.effect.group.add(inkex.TextElement(**text_attribs))
+        t.style = text_style
+        t.label = 'text'
+
         text = str(text).split("\n")
         for s in text:
-            span = inkex.etree.SubElement( t, inkex.addNS('tspan','svg'),
-                { 'x':str(x),
-                  'y':str(y),
-                  inkex.addNS("role","sodipodi"):"line",})
-            y += font_size
+            text_attribs = { 'x':str(x), 'y':str(y) }
+            span = t.add(inkex.Tspan(**text_attribs))
             span.text = str(s)
+            y += font_size
 
     def get_circles_from_effect(self):
         '''this gets all circles from the effect and
            stores them in a class array'''
-        #for id, shit in self.effect.doc_ids.iteritems():
-        for id, node in self.effect.selected.iteritems():
-            #node = self.effect.getElementById(id)
+        for node in self.effect.svg.selected.values():
             if not self.is_circle(node):
                 continue
             try:
@@ -188,7 +180,7 @@ class Circles:
                d = math.sqrt(x*x + y*y)
                if d > max:
                    max = d
-       max = self.effect.uutounit(max,'in')
+       max = self.effect.svg.uutounit(max,'in')
        return (max,self.moa(max,distance))
 
 
@@ -206,8 +198,8 @@ class Circles:
             toty = toty + float(abs(self.center[1]-circle.y))
         avgx = (totx / len(self.circles))*2
         avgy = (toty / len(self.circles))*2
-        avgx = self.effect.uutounit(avgx,'in')
-        avgy = self.effect.uutounit(avgy,'in')
+        avgx = self.effect.svg.uutounit(avgx,'in')
+        avgy = self.effect.svg.uutounit(avgy,'in')
         return (avgx,self.moa(avgx,distance),avgy,self.moa(avgy,distance))
 
 
@@ -247,11 +239,11 @@ class Circles:
     def average_precision_circle_inches(self,sometuple):
         '''input is a tuple of (x,y,r), output is the same in inches'''
         x = sometuple[0]
-        x = self.effect.uutounit(x,'in')
+        x = self.effect.svg.uutounit(x,'in')
         y = sometuple[1]
-        y = self.effect.uutounit(y,'in')
+        y = self.effect.svg.uutounit(y,'in')
         r = sometuple[2]
-        r = self.effect.uutounit(r,'in')
+        r = self.effect.svg.uutounit(r,'in')
         return (x,y,r)
 
     def moa(self,span,distance=100):
@@ -279,4 +271,4 @@ class Circle:
 
 if __name__ == '__main__':
     e = Target()
-    e.affect()
+    e.run()
