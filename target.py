@@ -41,9 +41,10 @@ class Target(inkex.EffectExtension):
             "extreme spread    = %.2f in, %.2f moa" % \
             (es[0],es[1])
 
-        circles.draw_text(output,(apc[0]+0,apc[1]+70))
-        #circles.draw_text(output,(apc[0]-80,apc[1]+50))
+        size = self.svg.unittouu('%.2f in' % apc_in[2])
+        size = size + (self.svg.unittouu('10 px')*2)
 
+        circles.draw_text(output,(apc[0]+0,apc[1]+size))
 
 class Circles:
     '''circles grabs all selected circles, finds various stats
@@ -128,7 +129,7 @@ class Circles:
             text_attribs = { 'x':str(x), 'y':str(y) }
             span = t.add(inkex.Tspan(**text_attribs))
             span.text = str(s)
-            y += font_size
+            y += fs
 
     def get_circles_from_effect(self):
         '''this gets all circles from the effect and
