@@ -19,7 +19,7 @@ class Target(inkex.EffectExtension):
         self.group = self.svg.get_current_layer().add(inkex.Group.new('target'))
         circles = Circles(self)
         if len(circles.circles) <= 2:
-            inkex.errormsg('select more than 2 circles')
+            inkex.errormsg('select more than 2 circles...try ungroup of selection')
             return None
         apc = circles.average_precision_circle()
         circles.draw_circle(apc)
@@ -53,6 +53,8 @@ class Circles:
         self.effect = effect
         self.circles = []
         self.get_circles_from_effect()
+        if len(self.circles) <= 2:
+            return
         self.name = 'target-average-precision'
         self.center = self.average_center()        
 
@@ -142,7 +144,7 @@ class Circles:
                 self.circles.append(circle)
             except:
                 continue
- 
+
     def is_circle(self,node):
         if node.tag == "{http://www.w3.org/2000/svg}circle":
             return True
